@@ -1,0 +1,201 @@
+---
+title: "tpnote"
+author: "Alexis MORTELIER 21605783"
+date: "11 décembre 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(RcmdrMisc)
+opts_chunk$set(echo = TRUE)
+```
+
+#Préliminaire
+
+Une étude de consommation a été menée auprès des pêcheurs à pied en Bretagne (Cyndie Picot, thèse soutenue en 2011). 510 pêcheurs à pied fréquentant les plages bretonnes ont rempli un questionnaire relatif à leurs habitudes de consommation. A partir des données récoltées, on a évalué leur consommation alimentaire de crustacés, et on souhaite étudier la variation du niveau de consommation selon différents facteurs socio-économiques.
+
+On s'intéresse ici aux variables suivantes
+
+* `Conso`: consommation de crustacés en grammes par personne et par jour;
+* `Residence`:
+    * `Nord`: nord de la zone étudiée
+    * `Centre`: centre de la zone
+    * `Sud`: sud de la zone
+    * `Autre`: autre zone
+* `Age`:
+    * `< 50 ans`: moins de 50 ans
+    * `[50 ans, 60 ans[`: de 50 ans à moins de 60 ans
+    * `[60 ans, 65 ans[`: de 60 ans à moins de 65 ans
+    * `>= 65 ans`: 65 ans et plus
+* `Sexe`: sexe de la personne interrogée
+* `Etudes`: niveau d’études
+    * `Primaire ou SD`: primaire ou sans diplôme
+    * `CAP/BEP`: CAP ou BEP
+    * `Secondaire/BAC`: études secondaires, Bac
+    * `Supérieure`: études supérieures
+* `CSP`: catégorie socio-professionnelle
+    * `Agriculteur`: agriculteur
+    * `Petit patron`: petit patron
+    * `Cadre sup.`: cadre supérieur
+    * `Prof. intermé.`: profession intermédiaire
+    * `Employé`: employé
+    * `Ouv. qualifié`: ouvrier qualifié
+    * `Retraité`: retraité
+    * `Inactif`: inactif
+
+#Nature des variables
+* `Conso`: valeur quantitative continue
+* `Residence`: valeur quantitative nominale
+* `Age`: valeur quantitative ordinale
+* `Sexe`: valeur quantitative nominale
+* `Etudes`: valeur quantitative nominale
+* `CSP`: valeur quantitative nominale
+
+#Lecture des données
+
+```{r, echo=TRUE}
+setwd(getwd())
+crustace = read.table("Conso-crustaces_INFO.csv", header = T,dec=".",sep=";")
+summary(crustace)
+```
+
+#Variable `CSP`
+
+##Table des effectifs de la variable `CSP`
+
+```{r, echo=TRUE}
+tcsp=table(crustace$CSP)
+knitr::kable(tcsp)
+
+```
+
+##Représentation en secteurs de la variable `CSP`
+```{r, echo=TRUE,fig.align = 'center'}
+
+bscp = barplot(tcsp,
+               cex.names=0.5,
+               ylab="Effectifs", 
+               ylim=c(0,310),
+               xlab="Catégories Socio-professionnelles",
+               main="Diagramme en barres")
+text(bscp,
+     tcsp+10,
+     tcsp)
+```
+##Représentation en secteurs de la variable `CSP`
+
+```{r, echo=TRUE,fig.align = 'center'}
+pcsp=pie(tcsp,
+         labels=rownames(tcsp),
+         main="Représentation de la tension des 5 premiers individus",
+         sub="Diagramme en secteur")
+```
+
+#Variable `Age`
+
+##Table des effectifs de la variable `Age`
+
+```{r, echo=TRUE}
+tage=table(crustace$Age)
+tage=tage[c(3,1,2,4)]
+knitr::kable(tage)
+```
+
+##Diagramme en bandeaux pour la variable `Age`
+```{r, echo=TRUE,fig.align = 'center'}
+bage=barplot(tage,
+             horiz=T,
+             main="Diagramme en bandeaux",
+             sub="Variable Age",
+             ylab="Catégories d’âge",
+             xlab="Effectifs",    
+             xlim=c(0,160),
+             cex.names=0.5)
+text(tage+10,
+     bage,
+     tage)
+
+```
+
+#Variables `Age` et `CSP`
+##Tableau de contingence des variables `Age` et `CSP`
+```{r, echo=TRUE}
+tcspage=table(crustace$Age, crustace$CSP)[c(3,1,2,4),]
+knitr::kable(tcspage)
+```
+
+##Diagramme en barres superposées
+```{r, echo=TRUE,fig.align = 'center'}
+bcspage = barplot(tcspage,
+        main="Diagramme en barres superposées",
+        sub="Croisement des variable Age et CSP",
+        xlab="Variable CSP",
+        ylab="Effectifs", 
+        cex.names=c(0.6),
+        col = grey.colors(4),
+        legend.text = row.names(tcspage),
+        args.legend = list(x="center", title="Catégories d’âge"))
+```
+#Variable `Conso`
+##Représentation en boîte à moustache de la variable `Conso`
+```{r, echo=TRUE,fig.align = 'center'}
+vconso = matrix(c(crustace$Conso))
+boxplot(vconso,
+        ylab="Consommation pers/jour en g",
+        main="Représentation en boîte à moustache",
+        sub="Variable conso")
+```
+
+ici la valeur centrale de la boite à moustache est la médiane.
+Les bords du rectangle sont les quartiles(en bas 1er quartile, en haut 3eme quartile)
+les traits au bout des moustache represente la plus petiteet la plus grand donnée.
+Les points represente des valeurs aberrantes. Ici sans doute une consommation excessive de crustacé.
+
+##Histogramme des fréquences de la variable `Conso`
+```{r, echo=TRUE,fig.align = 'center'}
+'hist(vconso, 
+     prob=T,
+     breaks=c(seq(0,40,10),180),
+     main = "Histogramme des fréquences de la variable Conso",
+     xlab = "Consommation pers/jour en g",
+     ylab = "Densité")'
+```
+##Statistiques descriptives sur la variable `Conso`
+```{r, echo=TRUE}
+'resume=RcmdrMisc::numSummary(
+    vconso,
+    statistics=c("mean",
+                 "sd", 
+                 "se(mean)",
+                 "IQR",
+                 "cv", 
+                 "skewness",
+                 "kurtosis",
+                 "quantiles"),
+    quantiles=c(0,.1,.25,.5,.75,.9,1)
+    )
+knitr::kable(resume)'
+```
+###Signification des différentes statistiques
+* `mean` = moyenne
+* `sd` = ecart type
+* `se(mean)` = erreur moyenne
+* `IQR` = intervalle des interquartiles
+* `cv` = coefficient de variation
+* `skewness` = asysteme d'une population de données
+* `kurtosis` = excés de kurthosis d'une population
+* `0%` = minimum
+* `10%` = 10% des effectifs
+* `25%` = 1ere quartile
+* `50%` = 50% des effectifs
+* `75%` = 3eme quartile
+* `90%` = 90% des effectifd
+* `100%` = maximum
+
+#Variables `Conso` et `Sexe`
+##Représentation en boîte à moustache de la variable `Conso` en fonction de la variable `Sexe`
+```{r, echo=TRUE,fig.align = 'center'}
+
+```
+##Histogramme des fréquences de la variable Conso en fonction de la variable `Sexe`

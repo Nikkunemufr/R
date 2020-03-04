@@ -1,0 +1,402 @@
+---
+title: "Exercices de statistique descriptive avec R et SAS"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+# Préliminaires : 
+Le fichier `tension.csv` est constituée de 40 lignes et 9 colonnes. 
+Il s'agit des réponses de 40 cadres d'entreprise à une enquête 
+sur le stress. La première colonne est une colonne
+d'identification et les autres colonnes correspondent aux 
+résultats de variables statistiques.
+
+* Colonne 1 : `id` identification du cadre par un numéro.
+* Colonne 2 : `tension` tension artérielle systolique mesurée en 
+mm de Hg (mercure).
+* Colonne 3 : `sexe` `H`=homme, `F`=femme.
+* Colonne 4 : `fume` réponse par `oui` ou `non` à la question : fumez-vous?
+* Colonne 5 : `niveau` niveau de responsabilité : `m`=cadre moyen, `s`=cadre supérieur,`d`=cadre de direction.
+* Colonne 6 : `logement` type de logement : `mi`=maison individuelle, `ap`=appartement, `autre`=autre.
+* Colonne 7 : `nbarrets` nombre d'arrêts de maladie durant la dernière année
+* Colonne 8 : `appreciation` appréciation sur son avenir au sein de l'entreprise : `p`=pessimiste, `mp`=moyennement pessimiste, `nn`=ni pessimiste,ni optimiste, `mo`=moyennement optimiste,
+`o`=optimiste.
+* Colonne 9 : `tptele` temps moyen passé par jour devant la télévision codé : `1`=moins d'une
+heure, `2`=entre une heure et trois heures, `3`=plus de trois heures.
+
+# Exercice 1: lecture des données
+```{r, echo=TRUE}
+# à décommenter et compléter selon votre environnement
+# setwd("Chemin vers le répertoire de travail")
+
+tension=read.table("tension.csv", header=T, sep=",")
+```
+
+# Exercice 2: Étude de la tension pour les 5 premiers cadres.
+
+## Question 2.1
+
+```{r, echo=TRUE, fig.align='center'}
+btension=barplot(tension$tension[1:5],
+                 names.arg = 1:5,
+                 ylab = "tension",
+                 ylim=c(0,180),
+                 main="Représentation de la tension des 5 premiers individus",
+                 sub= "Diagramme en barres verticales")
+text(btension,tension$tension[1:5]+10,
+     tension$tension[1:5])
+```
+
+## Question 2.2
+
+```{r, echo=TRUE, fig.align='center'}
+btension=barplot(sort(tension$tension[1:5]), horiz=T,
+                 names.arg = order(tension$tension[1:5]),
+                 xlab = "tension",
+                 xlim=c(0,180),
+                 main="Représentation de la tension des 5 premiers individus",
+                 sub= "Diagramme de Pareto en bandeaux",
+                 las=1,
+                 axis.lty = 1)
+text(sort(tension$tension[1:5])+10,
+     btension, sort(tension$tension[1:5]))
+```
+
+## Question 2.3
+
+```{r, echo=TRUE, fig.align='center'}
+pie(tension$tension[1:5],labels = tension$tension[1:5],
+    main="Représentation de la tension des 5 premiers individus",
+    sub= "Diagramme en secteur")
+```
+
+## Question 2.4
+
+```{r, echo=TRUE, fig.align='center'}
+plot(x=tension$tension[1:5],y=rep(1,5),
+     ylim=c(0,2),type="p", xlim=c(120,160),
+     axes=F,xlab = "tension",ylab="",
+     frame.plot = TRUE,
+     main="Représentation de la tension des 5 premiers individus",
+     sub= "Représentation axiale")
+axis(1,at=seq(120,160,10),
+     labels =seq(120,160,10) )
+```
+
+plus simplement
+
+```{r, echo=TRUE, fig.align='center'}
+stripchart(tension$tension[1:5],
+           xlab = "tension",ylab="",
+           main="Représentation de la tension des 5 premiers individus",
+           sub= "Représentation axiale")
+```
+
+# Exercice 3: Représentation de la distribution d'une variable qualitative : `logement`.
+
+## Question 3.1
+
+```{r, echo=TRUE, fig.align='center'}
+tlogement=table(tension$logement)
+btlogement=barplot(as.matrix(tlogement),beside = F,
+                   main="Représentation de la variable logement",
+                   sub="Représentation en barres cumulées",
+                   ylab="Nombre de logements",
+                   xlab="",
+                   xlim=c(-1,3),width=1)
+centre=cumsum(tlogement)-tlogement/2
+text(btlogement,centre,tlogement)
+legend("topright",fill=c("black","grey","lightgrey"),
+       legend = c("appart.", "autre", "maison\n indi."))
+```
+
+## Question 3.2
+
+```{r, echo=TRUE, fig.align='center'}
+nlogement=c("appart.", "autre", "maison\n indi.")
+
+blogement=barplot(sort(tlogement), horiz=T,
+                 names.arg = nlogement[order(tlogement)],
+                 xlab = "Effectifs",
+                 xlim=c(0,30),
+                 ylab="Type de logement",
+                 main="Représentation de la variable logement",
+                 sub= "Diagramme de Pareto en bandeaux",
+                 las=1, cex.names = 0.7)
+text(sort(tlogement)+1,
+     blogement, sort(tlogement))
+```
+
+## Question 3.3
+
+```{r, echo=TRUE, fig.align='center'}
+logleg=paste(nlogement,"\n",tlogement,sep="")
+pie(tlogement,labels = logleg,
+    main="Représentation de la de la variable logement",
+    sub= "Diagramme en secteur")
+
+```
+
+# Exercice 4: Étude de variable `niveau` 
+
+```{r, echo=TRUE, fig.align='center'}
+tniveau=table(tension$niveau)
+bniveau=barplot(tniveau[c(2,3,1)],
+                names.arg = "",
+                ylim=c(0,25),
+                xlab = "Niveau de responsabilité",
+                ylab="Effectifs",
+                main="Représentation de la variable niveau",
+                sub="Diagramme en barres")
+text(bniveau,
+     tniveau[c(2,3,1)]+2, tniveau[c(2,3,1)])
+axis(1,at=bniveau,
+     labels = c("cadres moyens",
+                "cadres supérieurs", 
+                "cadres de direction"))
+```
+
+# Exercice 5: Étude de variable `appreciation` 
+
+```{r, echo=TRUE, fig.align='center'}
+
+tappreciation=table(tension$appreciation)
+names(tappreciation)=c("moyennement\n optimiste",
+                      "moyennement\n pessimiste",
+                      "ni optimiste\n ni pessimiste",
+                      "optimiste","pessimiste")
+bapprec=barplot(tappreciation[c(5,2,3,1,4)],
+                ylim=c(0,20),
+                xlab = "Appreciation sur l'avenir dans l'entreprise",
+                ylab="Effectifs",
+                main="Représentation de la variable appreciation",
+                sub="Diagramme en barres",cex.names = 0.7)
+text(bapprec,
+     tappreciation[c(5,2,3,1,4)]+2, tappreciation[c(5,2,3,1,4)])
+```
+
+# Exercice 6: Étude simultanée de deux variables qualitatives à deux modalités (0; 1). 
+
+```{r, echo=TRUE, fig.align='center'}
+
+
+
+mbc=matrix(c(table(tension$fume),
+             tniveau[2],sum(tniveau[-2])),
+           ncol=2,byrow = F)
+bmbc=barplot(mbc, beside = F,
+             ylim=c(0,50),
+             xlab = "Appréciation sur l'avenir dans l'entreprise",
+             ylab="Effectifs",
+             main="Représentation des variables \n fume (oui=1 non=0) et position (cadre moyen=0 sinon 1)",
+             sub="Diagramme en barres cumulées",
+             names.arg = c("fume", "position"))
+text(rep(bmbc,c(2,2)),
+     c(cumsum(mbc[,1])-mbc[,1]/2,
+       cumsum(mbc[,2])-mbc[,2]/2),
+     c(mbc[,1],mbc[,2]))
+legend(x=sum(bmbc)/2,y=50,
+       fill=c("black","grey"),
+       horiz = T,
+       legend = c("0", "1"),
+       cex=0.5,xjust=0.5)
+```
+
+# Exercice 7: Représentation de la distribution d'une variable discrète : `nbarrets`. 
+
+```{r, echo=FALSE, fig.align='center'}
+tarrets=table(tension$nbarrets)
+barrets=barplot(tarrets,
+                ylim=c(0,35),
+                xlab = "Nombre d'arrêts",
+                ylab="Effectifs",
+                main="Représentation de la variable nbarrets",
+                sub="Diagramme en barres")
+text(barrets,
+     tarrets+2, tarrets)
+```
+
+# Exercice 8: Représentation de la distribution d'une variable continu : `tension`. 
+
+```{r, echo=TRUE, fig.align='center'}
+
+
+htension=hist(tension$tension,
+              breaks = seq(110,180,10),
+              prob=T,
+              main="Histogramme des fréquences de la variable tension",
+              ylab="Densité",
+              xlab="tension")
+```
+
+# Exercice 9: Polygone des fréquences cumulées avec une partition en classes fermées pour la variable`tension`. 
+
+```{r, echo=TRUE, fig.align='center'}
+btension=seq(110,180,10)
+fctension=c(0,cumsum(htension$counts)/40)
+plot(btension,fctension,type = "o",
+     main="Polygone des fréquences cumulées\n pour la variable tension",
+     xlab="tension",
+     ylab = "Fréquences")
+```
+
+# Exercice 10: Paramètres de position et de dispersion.
+
+## Question 10.1
+
+La variable `niveau`
+```{r, echo=TRUE, fig.align='center'}
+fniveau=matrix(c(tniveau,
+                 tniveau/sum(tniveau)*100,
+                 cumsum(tniveau),
+                 cumsum(tniveau)/sum(tniveau)*100),
+               ncol=4,byrow = F)
+colnames(fniveau)=c("Effectifs","Pourcentages",
+                    "Eff. cummulés",
+                    "Pourc. cumulées")
+rownames(fniveau)=c("cadres de direction", "cadres moyens",
+                     "cadres supérieurs")
+knitr::kable(fniveau)
+```
+
+La variable `appreciation`
+```{r, echo=TRUE, fig.align='center'}
+fapprec=matrix(c(tappreciation,
+                 tappreciation/sum(tappreciation)*100,
+                 cumsum(tappreciation),
+                 cumsum(tappreciation)/sum(tappreciation)*100),
+               ncol=4,byrow = F)
+colnames(fapprec)=c("Effectifs","Pourcentages",
+                    "Eff. cummulés",
+                    "Pourc. cumulées")
+rownames(fapprec)=c("moyennement optimiste",
+                      "moyennement pessimiste",
+                      "ni optimiste ni pessimiste",
+                      "optimiste","pessimiste")
+
+knitr::kable(fapprec)
+```
+
+La variable `logement`
+```{r, echo=TRUE, fig.align='center'}
+
+flogement=matrix(c(tlogement,
+                 tlogement/sum(tlogement)*100,
+                 cumsum(tlogement),
+                 cumsum(tlogement)/sum(tlogement)*100),
+               ncol=4,byrow = F)
+colnames(flogement)=c("Effectifs","Pourcentages",
+                    "Eff. cummulés",
+                    "Pourc. cumulées")
+rownames(flogement)=c("appartement", "autre", 
+                      "maison individuelle")
+knitr::kable(flogement)
+```
+
+La variable `nbarret`
+```{r, echo=TRUE, fig.align='center'}
+
+farrets=matrix(c(tarrets,
+                 tarrets/sum(tarrets)*100,
+                 cumsum(tarrets),
+                 cumsum(tarrets)/sum(tarrets)*100),
+               ncol=4,byrow = F)
+colnames(farrets)=c("Effectifs","Pourcentages",
+                    "Eff. cummulés",
+                    "Pourc. cumulées")
+rownames(farrets)=c("0 arret", "1 arret", 
+                      "2 arrets", "4 arrets")
+knitr::kable(farrets)
+```
+
+## Question 10.2
+
+La variable `nbarrets`
+```{r, echo=TRUE, fig.align='center'}
+RcmdrMisc::numSummary(
+    tension$nbarrets,
+    statistics=c("mean", "sd", 
+                 "quantiles")
+    )
+```
+
+La variable `tension`
+```{r, echo=TRUE, fig.align='center'}
+RcmdrMisc::numSummary(
+    tension$tension,
+    statistics=c("mean", "sd", 
+                 "se(mean)","IQR",
+                 "quantiles",
+                 "cv", "skewness",
+                 "kurtosis"),
+    quantiles=c(0,.1,.25,.5,.75,.9,1)
+    )
+```
+
+Autres statistiques sur la variable `tension`
+```{r, echo=TRUE, fig.align='center'}
+
+# Variance
+var(tension$tension)
+
+# étendue
+range(tension$tension)
+
+# écart inter quartile
+quantile(tension$tension,.75)-quantile(tension$tension,.25)
+```
+
+
+```{r, echo=TRUE, fig.align='center', fig.cap='Histogramme avec autre découpage en classe'}
+htension=hist(tension$tension,
+              breaks = c(110,seq(130,160,10),180),
+              prob=T,
+              main="Histogramme des fréquences de la variable tension",
+              ylab="Densité",
+              xlab="tension")
+```
+
+Suites des calculs pour la variable `tension`.
+```{r, echo=TRUE, fig.align='center'}
+# rapport D10/D1
+D1=tension$tension[tension$tension<=quantile(tension$tension,0.1)]
+D10=tension$tension[tension$tension>quantile(tension$tension,0.9)]
+# rapport D10/D1
+mean(D10)/mean(D1)
+```
+
+Courbe de Lorentz, variable `tension`.
+```{r, echo=TRUE, fig.align='center'}
+
+L0.25=sum(tension$tension[tension$tension<=quantile(tension$tension,0.25)])/sum(tension$tension)
+# Concentration à p=0.25
+L0.25
+
+L0.95=sum(tension$tension[tension$tension<=quantile(tension$tension,0.95)])/sum(tension$tension)
+# Concentration à p=0.95
+L0.95
+
+
+plot(c(0,.25,.95,1),c(0,L0.25,L0.95,1),type="l",
+     main="Courbe de Lorentz pour la variable tension",
+     xlab="p",ylab = "L(p)")
+segments(0,0,1,1,lty=2)
+```
+
+Autres graphiques, variable `tension`.
+```{r, echo=TRUE, fig.align='center'}
+
+boxplot(tension$tension,
+        main="Représentation en boîte à moustache\n de la variable tension")
+ 
+btension=barplot(mean(tension$tension),
+                 xlim=c(0,10),width=1,
+                 ylim=c(0,mean(tension$tension)+20),
+                 main="Représentation en barre\n et barre d'erreur\n de la variable tension")
+segments(btension,mean(tension$tension),
+         btension,mean(tension$tension)+sd(tension$tension))
+```
